@@ -1,0 +1,4 @@
+name: Death_Logger
+version: '${project.version}'
+main: me.joshdev.deathlogger.DeathLogger
+api-version: 1.19
