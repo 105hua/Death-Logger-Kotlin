@@ -1,64 +1,28 @@
+// Package Name
 package me.joshdev.deathlogger.events
 
+// Imports.
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDeathEvent
-import java.sql.Connection
-import java.sql.DriverManager
+import me.joshdev.deathlogger.database.DatabaseHandler
 
-class OnPlayerDeath : Listener {
+class OnPlayerDeath : Listener { // The OnPlayerDeath class inherits the Listener class.
 
-    var workingDir = System.getProperty("user.dir")
+    private val dbManager = DatabaseHandler() // Get the database handler.
 
-    @EventHandler
-    fun onPlayerDeath(e : EntityDeathEvent){
+    @EventHandler // Indicate that the following function is an event handler.
+    fun onPlayerDeath(e : EntityDeathEvent){ // Create a function that handles the player's death, taking an EntityDeathEvent var as input.
 
-        if(e.entity is Player){
+        if(e.entity is Player){ // If the entity passed is a player.
 
-            val player = e.entity as Player
-            val playerID = player.uniqueId.toString().replace("-", "")
+            val player = e.entity as Player // Create a player var that stores the entity as a player.
+            dbManager.createNewTable(player) // Create a new table for the player if it does not exist.
+            dbManager.insertData(player) // Insert the data for the player.
 
-            try{
+        } // Closing of if statement.
 
-                var url = "jdbc:sqlite:".plus(workingDir).plus("/test.db")
-                var conn = DriverManager.getConnection(url)
+    } // Closing of event function
 
-                // Make sure table exists first.
-                var existsCommand =
-                    """
-                        CREATE TABLE IF NOT EXISTS $playerID(
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        deathCoords TEXT
-                        );
-                    """.trimIndent()
-                var existsStatement = conn.createStatement()
-                existsStatement.execute(existsCommand)
-
-                // Insert data into table.
-                var deathLocation = e.entity.location
-                var locationString = deathLocation.x.toString().plus(", ").plus(deathLocation.y.toString()).plus(", ").plus(deathLocation.z.toString())
-
-                println(player.name.plus(" died at ").plus(locationString))
-
-                var insertCommand =
-                    """
-                        INSERT INTO $playerID(deathCoords) VALUES(
-                        '$locationString'
-                        );
-                    """.trimIndent()
-                var insertStatement = conn.createStatement()
-                insertStatement.execute(insertCommand)
-
-            }catch(e : Exception){
-
-                println("An error was produced.")
-                println(e.message)
-
-            }
-
-        }
-
-    }
-
-}
+} // Closing of event class.
